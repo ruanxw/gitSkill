@@ -2,6 +2,44 @@ import sys
 import pygame
 
 from bullet import Bullet
+from alien import Alien
+
+from random import randint
+
+def get_number_aliens_x(ai_settings, alien_width):
+    available_space_x = ai_settings.screen_width - 2*alien_width
+    number_aliens_x = int(available_space_x/(2*alien_width)) -1
+    return number_aliens_x
+
+def create_alien(ai_settings, screen, aliens, alien_number, row_number):
+    #创建一个外星人并将其加入当前行
+    alien = Alien(ai_settings, screen)
+    alien_width = alien.rect.width
+    alien_height = alien.rect.height
+    alien.x = alien_width + 2*alien_width*alien_number
+    alien.y = 2*alien_height*row_number
+    alien.rect.x = alien.x #randint(0, ai_settings.screen_width)
+    alien.rect.y = alien.y #randint(0, ai_settings.screen_height)
+    aliens.add(alien)
+
+def get_number_rows(screen_height, ship_height, alien_height):
+    '''计算屏幕可容纳多少行外星人'''
+    available_space_y = (screen_height - (3*alien_height) - ship_height)
+    number_rows = int(available_space_y/(2*alien_height))
+    return number_rows
+    
+def create_fleet(ai_settings, screen, ship, aliens):
+    '''创建外星人群'''
+    #创建一个外星人，并计算一行可容纳多少个外星人
+    #外星人间距为外星人宽度
+    alien = Alien(ai_settings, screen)
+    number_aliens_x = get_number_aliens_x(ai_settings, alien.rect.width)
+    number_rows = get_number_rows(ai_settings.screen_height, ship.rect.height, alien.rect.height)
+    print("number_rows:", number_rows)
+    #创建外星人群
+    for row_number in range(number_rows):
+        for alien_number in range(number_aliens_x):
+            create_alien(ai_settings, screen, aliens, alien_number, row_number)
 
 def fire_bullet(ai_settings, screen, ship, bullets):
     #创建一颗子弹，并将其加入到编组bullets中
@@ -45,14 +83,14 @@ def check_events(si_settings, screen, ship, bullets):
         elif event.type == pygame.KEYUP:
             check_keyup_events(event, ship)
                 
-def update_screen(ai_settings, screen, ship, bullets, alien):
+def update_screen(ai_settings, screen, ship, bullets, aliens):
     """更新屏幕上的图像，并切换到新屏幕"""
     #每次循环都绘制屏幕
     screen.fill(ai_settings.bg_color)
     #screen.blit(ship.image, (0,0)) #填充背景图片
     ship.blitme()
-    alien.blitme()
-    
+    aliens.draw(screen)
+
     for bullet in bullets.sprites():
         bullet.draw_bullet()
     
